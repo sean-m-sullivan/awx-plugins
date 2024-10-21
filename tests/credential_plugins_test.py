@@ -176,8 +176,12 @@ def test_aim_sensitive_traceback_masked(
     my_response.status_code = 404
     my_response.url = 'not_found'
 
-    monkeypatch.setattr(aim.requests, 'get', mocker.Mock(name='aim_request'))
-    aim.requests.get.return_value = my_response
+    aim_request_mock = mocker.Mock(
+        autospec=True,
+        name='aim_request',
+        return_value=my_response,
+    )
+    monkeypatch.setattr(aim.requests, 'get', aim_request_mock)
 
     expected_url_in_exc = (
         r'.*http://testurl\.com/AIMWebService/api/Accounts\?'
@@ -188,7 +192,10 @@ def test_aim_sensitive_traceback_masked(
         'AppId=****&Query=****&QueryFormat=test&reason=****'
     )
 
-    with pytest.raises(requests.exceptions.HTTPError, match=expected_url_in_exc) as e:
+    with pytest.raises(
+        requests.exceptions.HTTPError,
+        match=expected_url_in_exc,
+    ) as e:
         aim.aim_backend(
             url='http://testurl.com',
             app_id='foobar123',
@@ -198,5 +205,5 @@ def test_aim_sensitive_traceback_masked(
             verify=True,
         )
 
-    assert e._excinfo[1].response.url == expected_response_url_literal
+    assert e.value.response.url == expected_response_url_literal
     assert 'foobar123' not in str(e)
