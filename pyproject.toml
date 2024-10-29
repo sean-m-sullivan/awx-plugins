@@ -18,15 +18,6 @@ dependencies = [  # runtime deps  # https://packaging.python.org/en/latest/guide
   # GUIDANCE: only add things that this project imports directly
   # GUIDANCE: only set lower version bounds
   # "awx_plugins.base_interface.api",  # keep `__init__.py` empty
-  "awx_plugins.interfaces",  # standard interface declarations for AWX plugins
-  "PyYAML",  # credentials.injectors, inventory.plugins
-  "azure-identity",  # credentials.azure_kv
-  "azure-keyvault",  # credentials.azure_kv
-  "boto3",  # credentials.awx_secretsmanager
-  "msrestazure",  # credentials.azure_kv
-  "python-dsv-sdk >= 1.0.4",  # credentials.thycotic_dsv
-  "python-tss-sdk >= 1.2.1",  # credentials.thycotic_tss
-  "requests",  # credentials.aim, credentials.centrify_vault, credentials.conjur, credentials.hashivault
 ]
 classifiers = [  # Allowlist: https://pypi.org/classifiers/
   "Development Status :: 1 - Planning",
@@ -105,14 +96,97 @@ file = "LICENSE"
 # name = ""
 # email = "@"
 
-# [project.optional-dependencies]
-# # These are additional runtime dependencies used as feature-flags.
-# # The end-users will be able to reference them in their
-# # dependencies. Do not abuse as "test" / "dev" deps.
-# # Treat as public API.
-# a-feature = [
-#   "a-dependency"
-# ]
+[project.optional-dependencies]
+# These are additional runtime dependencies used as feature-flags.
+# The end-users will be able to reference them in their
+# dependencies. Do not abuse as "test" / "dev" deps.
+# Treat as public API.
+credentials-conjur = [
+  "awx_plugins.interfaces",
+  "requests",
+]
+credentials-hashivault-kv = [
+  "awx_plugins.interfaces",
+  "requests",
+]
+credentials-hashivault-ssh = [
+  "awx_plugins.interfaces",
+  "requests",
+]
+credentials-azure-kv = [
+  "awx_plugins.interfaces",
+  "azure-identity",
+  "azure-keyvault",
+  "msrestazure",
+]
+credentials-aim = [
+  "awx_plugins.interfaces",
+  "requests",
+]
+credentials-centrify-vault-kv = [
+  "awx_plugins.interfaces",
+  "requests",
+]
+credentials-thycotic-dsv = [
+  "awx_plugins.interfaces",
+  "python-dsv-sdk >= 1.0.4",
+]
+credentials-thycotic-tss = [
+  "awx_plugins.interfaces",
+  "python-tss-sdk >= 1.2.1",
+]
+credentials-aws-secretsmanager-credential = [
+  "awx_plugins.interfaces",
+  "boto3",
+]
+inventory-azure-rm = [
+  "awx_plugins.interfaces",
+  "PyYAML",
+]
+inventory-ec2 = [
+  "awx_plugins.interfaces",
+  "PyYAML",
+]
+inventory-gce = [
+  "awx_plugins.interfaces",
+  "PyYAML",
+]
+inventory-vmware = [
+  "awx_plugins.interfaces",
+  "PyYAML",
+]
+inventory-openstack = [
+  "awx_plugins.interfaces",
+  "PyYAML",
+]
+inventory-rhv = [
+  "awx_plugins.interfaces",
+  "PyYAML",
+]
+inventory-satellite6 = [
+  "awx_plugins.interfaces",
+  "PyYAML",
+]
+inventory-terraform = [
+  "awx_plugins.interfaces",
+  "PyYAML",
+]
+inventory-controller = [
+  "awx_plugins.interfaces",
+  "PyYAML",
+]
+inventory-insights = [
+  "awx_plugins.interfaces",
+  "PyYAML",
+]
+inventory-openshift-virtualization = [
+  "awx_plugins.interfaces",
+  "PyYAML",
+]
+inventory-constructed = [
+  "awx_plugins.interfaces",
+  "PyYAML",
+]
 
 [project.readme]
 file = "README.md"
