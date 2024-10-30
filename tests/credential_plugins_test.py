@@ -167,9 +167,38 @@ class TestDelineaImports:
             assert cls.__module__ == 'delinea.secrets.server'
 
 
+@pytest.mark.parametrize(
+    (
+        'reason',
+        'expected_url_in_exc',
+        'expected_response_url_literal',
+    ),
+    (
+        pytest.param(
+            'foobar123',
+            r'.*http://testurl\.com/AIMWebService/api/Accounts\?'
+            r'AppId=\*\*\*\*&Query=\*\*\*\*&QueryFormat=test&'
+            r'reason=\*\*\*\*.*',
+            'http://testurl.com/AIMWebService/api/Accounts?'
+            'AppId=****&Query=****&QueryFormat=test&reason=****',
+            id='with-reason',
+        ),
+        pytest.param(
+            '',
+            r'.*http://testurl\.com/AIMWebService/api/Accounts\?'
+            r'AppId=\*\*\*\*&Query=\*\*\*\*&QueryFormat=test.*',
+            'http://testurl.com/AIMWebService/api/Accounts?'
+            'AppId=****&Query=****&QueryFormat=test',
+            id='no-reason',
+        ),
+    ),
+)
 def test_aim_sensitive_traceback_masked(
-        mocker: MockerFixture,
-        monkeypatch: pytest.MonkeyPatch,
+    mocker: MockerFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    reason: str,
+    expected_url_in_exc: str,
+    expected_response_url_literal: str,
 ) -> None:
     """Ensure that the sensitive information is not leaked in the traceback."""
     my_response = requests.Response()
@@ -183,15 +212,6 @@ def test_aim_sensitive_traceback_masked(
     )
     monkeypatch.setattr(aim.requests, 'get', aim_request_mock)
 
-    expected_url_in_exc = (
-        r'.*http://testurl\.com/AIMWebService/api/Accounts\?'
-        r'AppId=\*\*\*\*&Query=\*\*\*\*&QueryFormat=test&reason=\*\*\*\*.*'
-    )
-    expected_response_url_literal = (
-        'http://testurl.com/AIMWebService/api/Accounts?'
-        'AppId=****&Query=****&QueryFormat=test&reason=****'
-    )
-
     with pytest.raises(
         requests.exceptions.HTTPError,
         match=expected_url_in_exc,
@@ -201,7 +221,7 @@ def test_aim_sensitive_traceback_masked(
             app_id='foobar123',
             object_query='foobar123',
             object_query_format='test',
-            reason='foobar123',
+            reason=reason,
             verify=True,
         )
 
