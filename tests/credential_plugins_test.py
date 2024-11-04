@@ -5,7 +5,10 @@ from unittest import mock
 
 import pytest
 
-from awx_plugins.credentials import hashivault
+import requests
+from pytest_mock import MockerFixture
+
+from awx_plugins.credentials import aim, hashivault
 
 
 def test_imported_azure_cloud_sdk_vars() -> None:
@@ -162,3 +165,65 @@ class TestDelineaImports:
         ):
             # assert this module as opposed to older thycotic.secrets.server
             assert cls.__module__ == 'delinea.secrets.server'
+
+
+@pytest.mark.parametrize(
+    (
+        'reason',
+        'expected_url_in_exc',
+        'expected_response_url_literal',
+    ),
+    (
+        pytest.param(
+            'foobar123',
+            r'.*http://testurl\.com/AIMWebService/api/Accounts\?'
+            r'AppId=\*\*\*\*&Query=\*\*\*\*&QueryFormat=test&'
+            r'reason=\*\*\*\*.*',
+            'http://testurl.com/AIMWebService/api/Accounts?'
+            'AppId=****&Query=****&QueryFormat=test&reason=****',
+            id='with-reason',
+        ),
+        pytest.param(
+            '',
+            r'.*http://testurl\.com/AIMWebService/api/Accounts\?'
+            r'AppId=\*\*\*\*&Query=\*\*\*\*&QueryFormat=test.*',
+            'http://testurl.com/AIMWebService/api/Accounts?'
+            'AppId=****&Query=****&QueryFormat=test',
+            id='no-reason',
+        ),
+    ),
+)
+def test_aim_sensitive_traceback_masked(
+    mocker: MockerFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    reason: str,
+    expected_url_in_exc: str,
+    expected_response_url_literal: str,
+) -> None:
+    """Ensure that the sensitive information is not leaked in the traceback."""
+    my_response = requests.Response()
+    my_response.status_code = 404
+    my_response.url = 'not_found'
+
+    aim_request_mock = mocker.Mock(
+        autospec=True,
+        name='aim_request',
+        return_value=my_response,
+    )
+    monkeypatch.setattr(aim.requests, 'get', aim_request_mock)
+
+    with pytest.raises(
+        requests.exceptions.HTTPError,
+        match=expected_url_in_exc,
+    ) as e:
+        aim.aim_backend(
+            url='http://testurl.com',
+            app_id='foobar123',
+            object_query='foobar123',
+            object_query_format='test',
+            reason=reason,
+            verify=True,
+        )
+
+    assert e.value.response.url == expected_response_url_literal
+    assert 'foobar123' not in str(e)
