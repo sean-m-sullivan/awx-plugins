@@ -705,7 +705,7 @@ ManagedCredentialType(
     injectors={
         'extra_vars': {
             'aap_hostname': '{{host}}',
-            'aap_username': '{{password}}',
+            'aap_username': '{{username}}',
             'aap_password': '{{password}}',
             'aap_token': '{{oauth_token}}',
             'aap_request_timeout': '{{request_timeout}}',
